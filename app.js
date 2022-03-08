@@ -45,34 +45,25 @@ app.use(session({
   store: new FileStore() // saves to the server's actual hard disk
 }));
 
+// new and returning users need to be able to access the index and users routes, so we're placing them both ABOVE the user authentication code here. welcome users!
+
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
 // begin user authentication
 
 function auth(req, res, next) {
   console.log(req.session);
 
-  if (!req.session.user) {
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-        const err = new Error('You are not authenticated!');
-        res.setHeader('WWW-Authenticate', 'Basic');
-        err.status = 401;
-        return next(err);
-      }
+  if (!req.session.user) { // removed some code because userRouter now handling some authentication, now all we're doing is just asking "Are you not authenticated?"
+      const err = new Error('You are not authenticated!');
+      err.status = 401;
+      return next(err);
 
-      const auth = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
-      const user = auth[0];
-      const pass = auth[1];
-      if (user === 'admin' && pass === 'password') {
-          req.session.user = 'admin'; // Express Sessions way of handling this...
-        return next(); // authorized
-      } else {
-        const err = new Error('You are not authenticated!');
-        res.setHeader('WWW-Authenticate', 'Basic');
-        err.status = 401;
-        return next(err);
-      }
+    // RIP to our user/pass split code here, check git history for reference
+
   } else {
-    if (req.session.user === 'admin') { // if true, you can go to the next middleware function
+    if (req.session.user === 'authenticated') { // if true, you can go to the next middleware function
         return next();
     } else {
         const err = new Error('You are not authenticated!');
@@ -88,8 +79,6 @@ app.use(auth);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/campsites', campsiteRouter);
 app.use('/promotions', promotionRouter);
 app.use('/partners', partnerRouter);
