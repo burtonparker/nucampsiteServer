@@ -5,6 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session); // with session, we are immediately calling a function return on our import
+const passport = require('passport');
+const authenticate = require('./authenticate');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -45,6 +47,9 @@ app.use(session({
   store: new FileStore() // saves to the server's actual hard disk
 }));
 
+app.use(passport.initialize()); // only necessary if using session based authentication
+app.use(passport.session()); // only necessary if using session based authentication
+
 // new and returning users need to be able to access the index and users routes, so we're placing them both ABOVE the user authentication code here. welcome users!
 
 app.use('/', indexRouter);
@@ -53,9 +58,9 @@ app.use('/users', usersRouter);
 // begin user authentication
 
 function auth(req, res, next) {
-  console.log(req.session);
+  console.log(req.user);
 
-  if (!req.session.user) { // removed some code because userRouter now handling some authentication, now all we're doing is just asking "Are you not authenticated?"
+  if (!req.user) { // removed some code because userRouter now handling some authentication, now all we're doing is just asking "Are you not authenticated?"
       const err = new Error('You are not authenticated!');
       err.status = 401;
       return next(err);
@@ -63,13 +68,7 @@ function auth(req, res, next) {
     // RIP to our user/pass split code here, check git history for reference
 
   } else {
-    if (req.session.user === 'authenticated') { // if true, you can go to the next middleware function
         return next();
-    } else {
-        const err = new Error('You are not authenticated!');
-        err.status = 401;
-        return next(err);      
-    }
   }
 }
 
