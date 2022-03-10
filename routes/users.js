@@ -10,6 +10,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/signup', (req, res) => { // after path arguments, give our middleware functions
+  console.log(req.body.username);
   User.register(
     new User({username: req.body.username}),
     req.body.password,
