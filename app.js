@@ -16,7 +16,7 @@ const partnerRouter = require('./routes/partnerRouter');
 
 const mongoose = require('mongoose');
 
-const url = 'mongodb://127.0.0.1:27017/nucampsite';
+const url = 'mongodb://127.0.0.1:27017/nucampsite'; // https://www.mongodb.com/community/forums/t/mongooseserverselectionerror-connect-econnrefused-127-0-0-1-27017/123421/2
 const connect = mongoose.connect(url, {
   useCreateIndex: true,
   useFindAndModify: false,
