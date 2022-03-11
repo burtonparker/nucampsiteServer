@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/user');
 const passport = require('passport');
+const authenticate = require('../authenticate'); // tokenize some shit
 
 const router = express.Router();
 
@@ -31,9 +32,10 @@ router.post('/signup', (req, res) => { // after path arguments, give our middlew
 });
 
 router.post('/login', passport.authenticate('local'), (req, res) => { // is the user already logged in? passport allows us to remove ALL the previous code here, check git history
+  const token = authenticate.getToken({_id: req.user._id});
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.json({success: true, status: 'You are successfully logged in!'});
+  res.json({success: true, token: token, status: 'You are successfully logged in!'});
 });
 
 router.get('/logout', (req, res, next) => {

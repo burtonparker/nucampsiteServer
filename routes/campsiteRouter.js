@@ -1,5 +1,7 @@
 const express = require('express');
 const Campsite = require('../models/campsite');
+const authenticate = require('../authenticate');
+
 const campsiteRouter = express.Router();
 
 campsiteRouter.route('/') // single argument of a path, also note we converted these routes into a single long crazy chain method, check commit history for before and after in server.js
@@ -12,7 +14,7 @@ campsiteRouter.route('/') // single argument of a path, also note we converted t
     })
     .catch(err => next(err));
 })
-.post((req, res, next) => {
+.post(authenticate.verifyUser, (req, res, next) => {
     Campsite.create(req.body)
     .then(campsite => {
         console.log('Campsite Create ', campsite);
@@ -22,11 +24,11 @@ campsiteRouter.route('/') // single argument of a path, also note we converted t
     })
     .catch(err => next(err));
 })
-.put((req, res) => {
+.put(authenticate.verifyUser, (req, res) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /campsites');
 })
-.delete((req, res, next) => { // note: this is super dangerous and in the real world needs to be limited to only priviledged users
+.delete(authenticate.verifyUser, (req, res, next) => { // note: this is super dangerous and in the real world needs to be limited to only priviledged users
     Campsite.deleteMany()
     .then(response => {
         res.statusCode = 200;
@@ -46,11 +48,11 @@ campsiteRouter.route('/:campsiteId')
     })
     .catch(err => next(err));
 })
-.post((req, res) => {
+.post(authenticate.verifyUser, (req, res) => {
     res.statusCode = 403;
     res.end(`POST operation not supported on /campsites/${req.params.campsiteId}`);
 })
-.put((req, res, next) => {
+.put(authenticate.verifyUser, (req, res, next) => {
     Campsite.findByIdAndUpdate(req.params.campsiteId, {
         $set: req.body
     }, { new: true })
@@ -61,7 +63,7 @@ campsiteRouter.route('/:campsiteId')
     })
     .catch(err => (err));
 })
-.delete((req, res, next) => {
+.delete(authenticate.verifyUser, (req, res, next) => {
     Campsite.findByIdAndDelete(req.params.campsiteId)
     .then(response => {
         res.statusCode = 200;
@@ -87,7 +89,7 @@ campsiteRouter.route('/:campsiteId/comments')
     })
     .catch(err => next(err));
 })
-.post((req, res, next) => {
+.post(authenticate.verifyUser, (req, res, next) => {
     Campsite.findById(req.params.campsiteId)
     .then(campsite => {
         if (campsite) {
@@ -107,11 +109,11 @@ campsiteRouter.route('/:campsiteId/comments')
     })
     .catch(err => next(err));
 })
-.put((req, res) => {
+.put(authenticate.verifyUser, (req, res) => {
     res.statusCode = 403;
     res.end(`PUT operation not supported on /campsites/${req.params.campsiteId}/comments`);
 })
-.delete((req, res, next) => { // note: this is super dangerous and in the real world needs to be limited to only priviledged users
+.delete(authenticate.verifyUser, (req, res, next) => { // note: this is super dangerous and in the real world needs to be limited to only priviledged users
     Campsite.findById(req.params.campsiteId)
     .then(campsite => {
         if (campsite) {
@@ -154,11 +156,11 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
     })
     .catch(err => next(err));
 })
-.post((req, res) => {
+.post(authenticate.verifyUser, (req, res) => {
     res.statusCode = 403;
     res.end(`POST operation not supported on /campsites/${req.params.campsiteId}/comments/${req.params.commentId}`);
 })
-.put((req, res, next) => { // updates existing data
+.put(authenticate.verifyUser, (req, res, next) => { // updates existing data
     Campsite.findById(req.params.campsiteId)
     .then(campsite => {
         if (campsite && campsite.comments.id(req.params.commentId)) {
@@ -187,7 +189,7 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
     })
     .catch(err => next(err));
 })
-.delete((req, res, next) => {
+.delete(authenticate.verifyUser, (req, res, next) => {
     Campsite.findById(req.params.campsiteId)
     .then(campsite => {
         if (campsite && campsite.comments.id(req.params.commentId)) {

@@ -1,12 +1,9 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const session = require('express-session');
-const FileStore = require('session-file-store')(session); // with session, we are immediately calling a function return on our import
 const passport = require('passport');
-const authenticate = require('./authenticate');
+const config = require('./config');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -16,7 +13,7 @@ const partnerRouter = require('./routes/partnerRouter');
 
 const mongoose = require('mongoose');
 
-const url = 'mongodb://127.0.0.1:27017/nucampsite'; // https://www.mongodb.com/community/forums/t/mongooseserverselectionerror-connect-econnrefused-127-0-0-1-27017/123421/2
+const url = config.mongoUrl;
 const connect = mongoose.connect(url, {
   useCreateIndex: true,
   useFindAndModify: false,
@@ -39,42 +36,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // app.use(cookieParser('12345-67890-09876-54321')); // can't use cookieParser AND Express Sessions, conflicts arise!
 
-app.use(session({
-  name: 'session-id',
-  secret: '12345-67890-09876-54321',
-  saveUninitialized: false, // when new session is created, but nothing happens, this just dumps that EMPTY session, no cookie will be sent either, helps prevent having tons of empty session files.
-  resave: false, // this helps keep a session active, research the documentation
-  store: new FileStore() // saves to the server's actual hard disk
-}));
-
 app.use(passport.initialize()); // only necessary if using session based authentication
-app.use(passport.session()); // only necessary if using session based authentication
-
-// new and returning users need to be able to access the index and users routes, so we're placing them both ABOVE the user authentication code here. welcome users!
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-
-// begin user authentication
-
-function auth(req, res, next) {
-  console.log(req.user);
-
-  if (!req.user) { // removed some code because userRouter now handling some authentication, now all we're doing is just asking "Are you not authenticated?"
-      const err = new Error('You are not authenticated!');
-      err.status = 401;
-      return next(err);
-
-    // RIP to our user/pass split code here, check git history for reference
-
-  } else {
-        return next();
-  }
-}
-
-app.use(auth);
-
-// end user authentication
 
 app.use(express.static(path.join(__dirname, 'public')));
 
