@@ -5,9 +5,17 @@ const Schema = mongoose.Schema;
 // let's use passport instead
 
 const userSchema = new Schema({
+    firstname: {
+        type: String,
+        default: ''
+    },
+    lastname: {
+        type: String,
+        default: ''
+    },
     admin: {
         type: Boolean,
-        default: false // admin flag is false for new users
+        default: false
     }
 });
 
