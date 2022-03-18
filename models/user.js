@@ -5,6 +5,7 @@ const Schema = mongoose.Schema;
 // let's use passport instead
 
 const userSchema = new Schema({
+    facebookId: String,
     firstname: {
         type: String,
         default: ''
